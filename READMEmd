@@ -1,0 +1,244 @@
+# Guardians of the Ancient Kingdom
+
+Guardians of the Ancient Kingdom es un proyecto de combate por turnos hecho en Python. La idea principal de este proyecto es simular una batalla entre varios tipos de personajes: guerrero, mago y arquero, cada uno con una forma distinta de atacar.
+
+Este proyecto se hace creando personajes con atributos, definiendo ataques distintos según cada clase y además controla la ejecución de la pelea hasta que uno de los dos personajes quede sin vida y se declara como ganador al otro, en caso de que esto no ocurra sería un empate.
+
+## 1. Descripción del proyecto
+
+En el reino de Eldoria, los guardianes se distinguen por su nombre, vida, ataque y defensa. Cada tipo de personaje tiene habilidades únicas:
+
+- Guerrero: aumenta su ataque un 20%
+- Mago: ignora la defensa del enemigo
+- Arquero: realiza daño doble si supera la defensa del otro
+
+El objetivo del proyecto es representar estas diferencias mediante clases y permitir que dos personajes se enfrenten por turnos. El combate se desarrolla automáticamente y termina cuando un personaje pierde toda su vida o cuando se decide que el enfrentamiento no tiene ganador(osea es un empate).
+
+
+## 2. Estructura del proyecto
+
+El proyecto está dividido en tres archivos principales:
+
+### personajes.py
+En este archivo se define toda la lógica del sistema de combate. Aquí se encuentran:
+
+- la clase abstracta `Personaje`
+- las subclases `Guerrero`, `Mago` y `Arquero`
+- la clase `Combate`
+- la validación de atributos
+- los métodos de ataque, daño y control de turno
+
+Este archivo define cómo funciona el proyecto
+
+### main.py
+Este archivo sirve para crear personajes, ejecutar combates y comprobar el funcionamiento del sistema.
+
+Aquí se instancian personajes reales, se invoca el combate y se muestran los resultados
+Además se escriben los errores que hubo en la elaboración.
+
+### README.md
+Este archivo documenta el proyecto, explica el diseño del código, el uso de poo y la lógica del combate.
+
+## 3. Clases y responsabilidades
+
+### Personaje
+`Personaje` es la clase base del sistema. Representa todos los atributos que comparten los personajes:
+
+- nombre
+- vida
+- ataque
+- defensa
+
+Además, define métodos comunes como:
+
+- `calcular_danio()`
+- `recibir_danio()`
+- `mostrar_estado()`
+- `esta_vivo()`
+
+La clase se define como abstracta porque no todos los personajes atacan igual.
+El método atacar es un método abstracto porque es obligatorio para todas las clases derivadas de Personaje.
+
+### Guerrero
+La clase `Guerrero` representa a un combatiente físico y poderoso. Su habilidad especial consiste en aumentar su ataque un 20% antes de restar la defensa del enemigo. Así:
+def atacar(self, enemigo):
+        daño = max(0, self.calcular_danio() * 1.20 - enemigo.defensa)
+        enemigo.recibir_danio(daño)
+
+### Mago
+La clase `Mago` representa a un atacante mágico. Su daño ignora la defensa del rival, por lo que el enemigo recibe daño directo según su ataque:
+def atacar(self, enemigo):
+        daño = self.calcular_danio()
+        enemigo.recibir_danio(daño)
+
+### Arquero
+La clase `Arquero` representa a un personaje con precisión y puntería. Si su ataque supera la defensa enemiga, realiza un daño crítico que duplica el daño base:
+def atacar(self, enemigo):
+        daño_base = max(0, self.calcular_danio() - enemigo.defensa)
+        if daño_base > 0:
+            daño_final = daño_base * 2
+        else:
+            daño_final = 0
+        enemigo.recibir_danio(daño_final)
+
+### Combate
+La clase `Combate` administra la pelea entre dos personajes.
+
+Su responsabilidad es:
+- iniciar el combate: 
+def iniciar(self):
+        while self.p1.esta_vivo() and self.p2.esta_vivo():
+            self.p1.atacar(self.p2)
+            self.rondas += 1
+            print(f"Ronda #{self.rondas}")
+            self.mostrar_estado()
+
+            if not self.p2.esta_vivo():
+                print(f"{self.p1.nombre} ganó en {self.rondas} rondas")
+                return
+            self.p2.atacar(self.p1)
+            self.rondas += 1
+            print(f"Ronda {self.rondas}:")
+            self.mostrar_estado()
+            if not self.p1.esta_vivo():
+                print(f"{self.p2.nombre} ganó en {self.rondas} rondas")
+                return
+- alternar turnos:
+def cambiar_turno(self, turno_actual):
+        if turno_actual == self.p1:
+            turno_actual = self.p2
+        else:
+            turno_actual = self.p1
+        print(f"Turno de: {turno_actual.nombre}")
+
+- verificar quién sigue vivo:
+- identificar al ganador
+def verificar_ganador(self):
+        if self.p1.esta_vivo() and not self.p2.esta_vivo():
+            return self.p1.nombre
+        elif self.p2.esta_vivo() and not self.p1.esta_vivo():
+            return self.p2.nombre
+        else:
+            return "Empate"
+
+- mostrar el resultado final:
+def mostrar_resultado(self):
+        ganador = self.verificar_ganador()
+        if ganador == self.p1.nombre:
+            print(f"El ganador de la partida es {self.p1.nombre}")
+        elif ganador == self.p2.nombre:
+            print(f"El ganador de la partida es {self.p2.nombre}")
+        else:
+            print(f"Hubo empate")
+
+
+## 4. Relaciones entre clases
+
+### Herencia
+La relación de herencia se da porque `Guerrero`, `Mago` y `Arquero` son tipos de `Personaje`.
+
+Esto permite reutilizar atributos y acciones comunes sin tener que repetir código.
+
+### Asociación
+La asociación se da cuando un personaje ataca a otro personaje. Los objetos interactúan entre sí y se comunican mediante métodos como:
+
+- `atacar(enemigo)`
+- `recibir_danio(cantidad)`
+
+### Agregación
+La clase `Combate` agrega dos personajes para formar un enfrentamiento. Es decir, el combate no crea a los personajes desde cero sino que los recibe ya creados como parte del proyecto.
+
+Esto permite que los personajes existan como independientes y luego puedan ser utilizados dentro de una pelea.
+
+## 5. Conceptos de POO aplicados
+
+### Abstracción
+La abstracción se usa al definir qué propiedades y comportamientos son esenciales de un personaje. En este proyecto estos son: nombre, vida, ataque, defensa y la acción de atacar que es un método abstracto.
+ @abstractmethod    
+    def atacar(self, enemigo):
+        pass
+
+Cada clase luego puede editar su propio método atacar.
+
+### Encapsulamiento
+Los atributos de un personaje están protegidos por validaciones. Por ejemplo, no se permite un nombre vacío, una vida fuera de rango o un ataque negativo.
+
+Esto evita que los datos del juego queden en un estado inválido.
+
+### Herencia
+Se usa para compartir comportamiento común entre todas las clases de personajes:
+class Guerrero(Personaje):
+
+### Polimorfismo
+El polimorfismo aparece porque cada subclase de `Personaje` implementa `atacar()` de forma diferente.
+
+Aunque todas usan el mismo nombre del método, cada clase realiza una acción distinta según su habilidad especial.
+
+
+## 6. Lógica del combate
+
+El combate se desarrolla por turnos.
+
+### Regla general
+Cada personaje ataca en su turno, y el daño se calcula según su clase:
+
+- Guerrero:
+  - daño = máximo(0, ataque × 1.20 − defensa enemiga)
+
+- Mago:
+  - daño = ataque
+  - ignora la defensa del rival
+
+- Arquero:
+  - daño base = máximo(0, ataque − defensa enemiga)
+  - si el ataque supera la defensa, el daño final se duplica
+
+### Control de turno
+La clase `Combate` controla quién ataca y cuándo. Cuando un personaje muere, el combate termina.
+
+### Control de vida
+La vida nunca puede quedar negativa. Si el daño supera la vida disponible, el personaje queda en 0 HP.
+
+**7. Ejecución:**
+**8. Pruebas:**
+Se hicieron pruebas con datos normales cómo:
+guerrero1 = Guerrero("Ruki", 100, 40, 30)
+mago1 = Mago("Magis", 100, 20, 20)
+Su resultado fue el esperado:
+Personaje: Magis | Vida: 72.0 HP | Ataque: 20 | Defensa: 20
+Personaje: Ruki | Vida: 80 HP | Ataque: 40 | Defensa: 30
+Ronda #1
+Personaje: Ruki | Vida: 80 HP | Ataque: 40 | Defensa: 30
+Personaje: Magis | Vida: 44.0 HP | Ataque: 20 | Defensa: 20
+Ronda 2:
+Personaje: Ruki | Vida: 60 HP | Ataque: 40 | Defensa: 30
+Personaje: Magis | Vida: 44.0 HP | Ataque: 20 | Defensa: 20
+Ronda #3
+Personaje: Ruki | Vida: 60 HP | Ataque: 40 | Defensa: 30
+Personaje: Magis | Vida: 16.0 HP | Ataque: 20 | Defensa: 20
+Ronda 4:
+Personaje: Ruki | Vida: 40 HP | Ataque: 40 | Defensa: 30
+Personaje: Magis | Vida: 16.0 HP | Ataque: 20 | Defensa: 20
+Ronda #5
+Personaje: Ruki | Vida: 40 HP | Ataque: 40 | Defensa: 30
+Personaje: Magis | Vida: 0 HP | Ataque: 20 | Defensa: 20
+Ruki gan� en 5 rondas
+
+Con datos extraños:
+guerrero1 = Guerrero("Ruki", 100, 0, 0)
+mago1 = Mago("Magis", 100, -20, 20)
+El error fue:
+raise ValueError("El ataque debe ser positivo.")
+ValueError: El ataque debe ser positivo.
+
+######
+UML
+El UML (Lenguaje Unificado de Modelado, o Unified Modeling Language) es un estándar gráfico que permite representar visualmente los componentes, la estructura y el comportamiento de un sistema de programación orientada a objetos (POO).
+Permite diseñar y documentar una aplicación antes de escribir código. Traduce los conceptos de la POO (como clases, objetos, herencia y encapsulamiento) a un lenguaje visual comprensible para desarrolladores y analistas.
+
+El Diagrama de Clases (El más usado en POO)
+Representa la estructura estática del sistema. Una clase se dibuja como un rectángulo dividido en tres secciones
+
+
+Link de canva para archivo de diagrama UML:
+https://canva.link/i48chvwaqqgz182
